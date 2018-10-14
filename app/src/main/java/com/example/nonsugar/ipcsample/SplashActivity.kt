@@ -61,6 +61,10 @@ class SplashActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate")
         setContentView(R.layout.activity_splash)
+
+        // サービスを起動
+        val service = Intent(application, SampleService::class.java)
+        startService(service)
     }
 
     override fun onStart() {
