@@ -9,6 +9,7 @@ import android.util.Log
 
 import com.example.nonsugar.ipcsample.ISampleService
 import com.example.nonsugar.ipcsample.ISampleServiceCallback
+import com.example.nonsugar.ipcsample.InitializeListener
 
 
 /** クラス名 */
@@ -21,6 +22,9 @@ class SampleService : Service() {
     /** コールバックのリスト */
     private val mCallbacks = RemoteCallbackList<ISampleServiceCallback>()
 
+    /** 初期化リスナー */
+    private val mInitListener = RemoteCallbackList<InitializeListener>()
+
     /** 非同期処理を実行するスレッド */
     private val mThread = BackgroundQueue()
 
@@ -31,6 +35,7 @@ class SampleService : Service() {
          * @param callback 登録するコールバック
          */
         override fun registerCallback(callback: ISampleServiceCallback) {
+            // 複数スレッドから参照されそうだし排他が必要かも
             mCallbacks.register(callback)
         }
 
@@ -39,6 +44,7 @@ class SampleService : Service() {
          * @param callback 登録解除するコールバック
          */
         override fun unregisterCallback(callback: ISampleServiceCallback) {
+            // 複数スレッドから参照されそうだし排他が必要かも
             mCallbacks.unregister(callback)
         }
 
@@ -78,6 +84,18 @@ class SampleService : Service() {
                 mCallbacks.finishBroadcast()
             })
         }
+
+        override fun retisterInitializeLitener(listener: InitializeListener) {
+            Log.d(TAG, "retisterInitializeLitener")
+            // 複数スレッドから参照されそうだし排他が必要かも
+            mInitListener.register(listener)
+        }
+
+        override fun unretisterInitializeLitener(listener: InitializeListener) {
+            Log.d(TAG, "unretisterInitializeLitener")
+            // 複数スレッドから参照されそうだし排他が必要かも
+            mInitListener.unregister(listener)
+        }
     }
 
     override fun onCreate() {
@@ -86,10 +104,33 @@ class SampleService : Service() {
 
         // 非同期実行用スレッドを起動
         mThread.startThread()
+        initialize()
     }
 
     override fun onBind(intent: Intent): IBinder? {
         Log.d(TAG, "onBind")
         return mBinder
+    }
+
+    private fun initialize() {
+        mThread.enqueue(Runnable {
+            // 重めな初期化処理を行う
+            try {
+                Thread.sleep(3000L)
+            } catch (e: InterruptedException) {
+                e.printStackTrace()
+            }
+
+            // リスナー登録より先にここにきてしまう場合も想定しないとダメかも
+            val n = mInitListener.beginBroadcast()
+            for (i in 0 until n) {
+                try {
+                    mInitListener.getBroadcastItem(i).onInitializeComplete()
+                } catch (e: RemoteException) {
+                    e.printStackTrace()
+                }
+            }
+            mInitListener.finishBroadcast()
+        })
     }
 }

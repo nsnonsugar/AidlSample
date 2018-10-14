@@ -10,6 +10,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity">
+        </activity>
+        <activity android:name=".SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -20,7 +22,7 @@
             android:name="com.example.nonsugar.service.SampleService"
             android:exported="false"
             android:enabled="true"
-            android:process="com.example.nonsugar.ipcsample.SampleService"/>
+            android:process="com.example.nonsugar.service.SampleService"/>
     </application>
 
 </manifest>
