@@ -10,6 +10,7 @@ import android.util.Log
 import com.example.nonsugar.ipcsample.ISampleService
 import com.example.nonsugar.ipcsample.ISampleServiceCallback
 import com.example.nonsugar.ipcsample.InitializeListener
+import org.greenrobot.eventbus.EventBus
 
 
 /** クラス名 */
@@ -19,6 +20,14 @@ private const val TAG: String = "SampleService"
  * 同期・非同期で通信可能なサービス
  */
 class SampleService : Service() {
+    companion object {
+        init {
+            System.loadLibrary("native-lib")
+        }
+    }
+
+    external fun callbackFromC()
+
     /** コールバックのリスト */
     private val mCallbacks = RemoteCallbackList<ISampleServiceCallback>()
 
@@ -27,6 +36,8 @@ class SampleService : Service() {
 
     /** 非同期処理を実行するスレッド */
     private val mThread = BackgroundQueue()
+
+    private val mNotifier = NativeNotifier()
 
     /** プロセス間IF実装 */
     private val mBinder = object : ISampleService.Stub() {
@@ -54,6 +65,10 @@ class SampleService : Service() {
          */
         override fun syncGetStringFromService(): String {
             Log.d(TAG, "syncGetStringFromService")
+
+            // テストでここで呼ぶ
+            callbackFromC()
+
             return "Sync String"
         }
 
@@ -109,14 +124,20 @@ class SampleService : Service() {
 
     override fun onBind(intent: Intent): IBinder? {
         Log.d(TAG, "onBind")
+        EventBus.getDefault().register(mNotifier)
         return mBinder
+    }
+
+    override fun onDestroy() {
+        EventBus.getDefault().unregister(mNotifier)
+        super.onDestroy()
     }
 
     private fun initialize() {
         mThread.enqueue(Runnable {
             // 重めな初期化処理を行う
             try {
-                Thread.sleep(3000L)
+                Thread.sleep(1000L)
             } catch (e: InterruptedException) {
                 e.printStackTrace()
             }
