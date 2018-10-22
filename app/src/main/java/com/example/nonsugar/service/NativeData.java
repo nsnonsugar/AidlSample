@@ -1,6 +1,6 @@
 package com.example.nonsugar.service;
 
-public class NativeData {
+public class NativeData extends BaseNativeData {
     private int mIntValue;
     private String mString;
     private byte[] mBytes;

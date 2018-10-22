@@ -11,13 +11,26 @@ import org.greenrobot.eventbus.Subscribe;
 public class NativeNotifier {
     private static final String TAG = NativeNotifier.class.getSimpleName();
 
-    public static void notifyFromNative(NativeData data) {
+
+    /**
+     * ネイティブからJavaへ通知を送る
+     * ネイティブ側で呼び出すメソッド この呼び出しを受けてJavaではonEventで処理を行う
+     * @param data ネイティブからJavaへ渡すデータ
+     */
+    @SuppressWarnings("UnusedDeclaration") // ネイティブから呼ばれる
+    public static void notifyFromNative(BaseNativeData data) {
         EventBus.getDefault().post(data);
     }
 
+    /**
+     * ネイティブからの通知を受信
+     * ネイティブからnotifyFromNative()を呼ぶとJava側はここで処理を受け取る
+     * @param data ネイティブから受け取ったデータ
+     */
     @Subscribe
-    public void onEvent(NativeData data) {
-        int value = data.getIntValue();
-        Log.d(TAG, "onEvent mIntValue:" + value);
+    @SuppressWarnings("UnusedDeclaration") // EventBusから呼ばれる
+    public void onEvent(BaseNativeData data) {
+        NativeData nativeData = (NativeData)data;
+        Log.d(TAG, "onEvent mIntValue:" + nativeData.getIntValue());
     }
 }

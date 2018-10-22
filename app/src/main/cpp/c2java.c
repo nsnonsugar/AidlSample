@@ -83,7 +83,7 @@ Java_com_example_nonsugar_service_SampleService_callbackFromC(JNIEnv *env, jobje
 
     // メソッドIDを取得する
     LOGI("get method ID\n");
-    jmethodID methodId = (*env)->GetStaticMethodID(env, gJniContext.nativeNotifierClaz, "notifyFromNative", "(Lcom/example/nonsugar/service/NativeData;)V");
+    jmethodID methodId = (*env)->GetStaticMethodID(env, gJniContext.nativeNotifierClaz, "notifyFromNative", "(Lcom/example/nonsugar/service/BaseNativeData;)V");
     if (methodId == NULL) {
         LOGI("methodId is nul...");
         return;
